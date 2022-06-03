@@ -25,6 +25,26 @@ describe("remove-flow-pragmas", () => {
     expect(await transform(src)).toEqual(expected);
   });
 
+  it("should remove standard flow pragmas from block, but keep other lines", async () => {
+    const src = dedent`
+      /**
+       * Some usefull comment
+       *
+       * @flow strict-local
+       */
+      ${standardProgram}
+      `;
+
+    const expected = dedent`
+      /**
+       * Some usefull comment
+       */
+      ${standardProgram}
+      `;
+
+    expect(await transform(src)).toEqual(expected);
+  });
+
   it("should remove the comment even if it has extra comment marks", async () => {
     const src = dedent`
       // ///// / / / / / /// // // /// ////////// /// // /////// @flow

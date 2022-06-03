@@ -4,6 +4,8 @@ import { types } from "recast";
 import { TransformerInput } from "./transformer";
 
 const flowComments = [
+  "@flow strict-local",
+  "@flow strict",
   "@flow",
   "$FlowFixMe",
   "$FlowIssue",
@@ -28,9 +30,26 @@ const removeComments = (
 
     rootNode.comments =
       comments
-        ?.filter(
-          (comment) => !flowComments.some((c) => comment.value.includes(c))
-        )
+        ?.map((comment) => {
+          if (flowComments.some((c) => comment.value.includes(c))) {
+            let value = comment.value.split('\n')
+              .filter(line =>
+                !(flowComments.some(comment => line.includes(comment))))
+              .filter(line =>
+                !(/^\s*\*\s*$/.test(line)))
+              .join('\n')
+
+            return {
+              ...comment,
+              value: value.trim()
+                ? value.replace(/^/, '*\n')
+                : value
+            }
+          } else {
+            return comment
+          }
+        })
+        .filter((comment) => comment.value.length > 0)
         .map((comment) => {
           if (comment.value.includes("@noflow")) {
             return {
